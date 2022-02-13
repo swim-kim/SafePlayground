@@ -359,9 +359,14 @@
         <!-- Testimonials -->
         <div class="slider-1 py-32 bg-gray">
             <div class="container px-4 sm:px-8">
-                <h2 class="mb-12 text-center lg:max-w-xl lg:mx-auto">What do users think about Pavo</h2>
+                <h2 class="mb-12 text-center lg:max-w-xl lg:mx-auto">Map</h2>
 
-                <!-- Card Slider -->
+                <div style="width: 100%">
+                    <p id="address"></p>
+                </div>
+                <div id="map-display" style="width:100%;height:400px;"></div>
+
+                {% comment %} <!-- Card Slider -->
                 <div class="slider-container">
                     <div class="swiper-container card-slider">
                         <div class="swiper-wrapper">
@@ -438,7 +443,7 @@
                             </div> <!-- end of swiper-slide -->
                             <!-- end of slide -->
 
-                        </div> <!-- end of swiper-wrapper -->
+                        </div> <!-- end of swiper-wrapper --> {% endcomment %}
 
                         <!-- Add Arrows -->
                         <div class="swiper-button-next"></div>
@@ -638,10 +643,67 @@
 
 
         <!-- Scripts -->
+        <script src="{% static 'js/Gps.js' %}"></script>
         <script src="{% static 'js/jquery.min.js' %}"></script> <!-- jQuery for JavaScript plugins -->
         <script src="{% static 'js/jquery.easing.min.js' %}"></script> <!-- jQuery Easing for smooth scrolling between anchors -->
         <script src="{% static 'js/swiper.min.js' %}"></script> <!-- Swiper for image and text sliders -->
         <script src="{% static 'js/jquery.magnific-popup.js' %}"></script> <!-- Magnific Popup for lightboxes -->
         <script src="{% static 'js/scripts.js' %}"></script> <!-- Custom scripts -->
+        <script>
+            var geocoder = new kakao.maps.services.Geocoder();
+            var displayAddress = document.getElementById('address');
+
+            function setAddress(address_name, road_name) {
+                displayAddress.innerHTML = address_name + ' ' + road_name;
+            };
+
+            function onGeoSuccess(position) {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+
+                var location = new kakao.maps.LatLng(lat, lng),
+                message = '<div> 현재 위치 </div>';
+
+                displayMarker(location, message);
+
+                geocoder.coord2Address(lng, lat, function(result, status){
+                if (status === kakao.maps.services.Status.OK) {
+                    setAddress(result[0].address.address_name, result[0].road_address.road_name);
+                }
+                });
+            };
+
+            function onGeoError() {
+                alert("위치 정보를 찾을 수 없습니다.");
+            };
+
+            function displayMarker(location, message){
+                var marker = new kakao.maps.Marker({
+                map: map,
+                position: location
+                });
+
+                var icontent = message,
+                iremoveable = true;
+                
+                var infoWindow = new kakao.maps.InfoWindow({
+                content: icontent,
+                removable: iremoveable
+                });
+
+                infoWindow.open(map, marker);
+                map.setCenter(location);
+            };
+
+            var mapContainer = document.getElementById('map-display'), 
+                mapOption = { 
+                center: new kakao.maps.LatLng(33, 126),
+                level: 10
+                };
+
+            var map = new kakao.maps.Map(mapContainer, mapOption);
+
+            navigator.geolocation.getCurrentPosition(onGeoSuccess, onGeoError);
+        </script>
     </body>
 </html>
